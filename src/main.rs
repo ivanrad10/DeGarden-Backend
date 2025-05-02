@@ -1,6 +1,7 @@
 use axum::Server;
 use std::net::SocketAddr;
 
+mod database;
 mod routes;
 
 #[tokio::main]
