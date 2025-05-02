@@ -1,0 +1,29 @@
+{
+  "crates": [
+    {
+      "root_module": "src/main.rs",
+      "edition": "2021",
+      "deps": [
+        { "crate": "axum", "name": "axum" },
+        { "crate": "chrono", "name": "chrono" },
+        { "crate": "dotenv", "name": "dotenv" },
+        { "crate": "tokio", "name": "tokio" },
+        { "crate": "serde", "name": "serde" },
+        { "crate": "serde_json", "name": "serde_json" },
+        { "crate": "tokio-postgres", "name": "tokio_postgres" }
+        { "crate": "postgres", "name": "postgres" }
+      ],
+      "features": {
+        "tokio": ["full"],
+        "serde": ["derive"],
+        "chrono": ["serde", "clock"]
+      },
+      "cfg": [],
+      "env": {},
+      "is_workspace_member": true,
+      "source": {
+        "include": ["src"]
+      }
+    }
+  ]
+}
