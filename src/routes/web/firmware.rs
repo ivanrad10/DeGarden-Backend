@@ -1,45 +1,35 @@
-use std::{env, path::PathBuf, process::Command};
-
 use axum::{
     body::StreamBody,
     http::{header, HeaderValue, StatusCode},
     response::IntoResponse,
 };
 use dotenv::dotenv;
+use std::{env, path::PathBuf, process::Command};
 use tokio::fs::File;
 use tokio_util::io::ReaderStream;
 
-pub async fn moisture(
-    board: String,
-    ssid: String,
-    password: String,
-    key: String,
-) -> impl IntoResponse {
+use super::types::FirmwareRequest;
+
+pub async fn moisture(payload: FirmwareRequest) -> impl IntoResponse {
     dotenv().ok();
     let base_dir = env::var("BASE_DIR_MOISTURE").expect("BASE_DIR_MOISTURE not set in .env file");
 
-    build_and_stream_firmware(&base_dir, &board, &ssid, &password, &key).await
+    build_and_stream_firmware(&base_dir, &payload).await
 }
 
-pub async fn flowmeter(
-    board: String,
-    ssid: String,
-    password: String,
-    key: String,
-) -> impl IntoResponse {
+pub async fn flowmeter(payload: FirmwareRequest) -> impl IntoResponse {
     dotenv().ok();
     let base_dir = env::var("BASE_DIR_FLOWMETER").expect("BASE_DIR_FLOWMETER not set in .env file");
 
-    build_and_stream_firmware(&base_dir, &board, &ssid, &password, &key).await
+    build_and_stream_firmware(&base_dir, &payload).await
 }
 
-async fn build_and_stream_firmware(
-    base_dir: &str,
-    board: &str,
-    ssid: &str,
-    password: &str,
-    key: &str,
-) -> impl IntoResponse {
+async fn build_and_stream_firmware(base_dir: &str, payload: &FirmwareRequest) -> impl IntoResponse {
+    let board = payload.board.as_str();
+    let ssid = payload.ssid.as_str();
+    let password = payload.password.as_str();
+    let key = payload.key.as_str();
+
     let supported_boards = env::var("SUPPORTED_BOARDS_MOISTURE")
         .expect("SUPPORTED_BOARDS_MOISTURE not set in .env file");
 

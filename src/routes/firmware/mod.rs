@@ -1,9 +1,8 @@
-use std::sync::Arc;
-
 use axum::{
     routing::{get, post},
     Json, Router,
 };
+use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 

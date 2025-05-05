@@ -1,6 +1,5 @@
-use std::{cmp::min, collections::HashMap};
-
 use chrono::{DateTime, Duration, Timelike, Utc};
+use std::{cmp::min, collections::HashMap};
 
 use super::types::*;
 

@@ -1,8 +1,13 @@
+use axum::{
+    extract::Path,
+    routing::{get, post},
+    Json, Router,
+};
 use std::sync::Arc;
-
-use axum::{extract::Path, routing::get, Router};
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
+
+use types::FirmwareRequest;
 
 pub mod calculate;
 pub mod direct;
@@ -35,25 +40,11 @@ pub fn routes(db_client: Arc<Mutex<Client>>) -> Router {
             }),
         )
         .route(
-            "/firmware/moisture/:board/:ssid/:password/:key",
-            get(
-                move |Path((board, ssid, password, key)): Path<(
-                    String,
-                    String,
-                    String,
-                    String,
-                )>| { firmware::moisture(board, ssid, password, key) },
-            ),
+            "/firmware/moisture",
+            post(|Json(payload): Json<FirmwareRequest>| firmware::moisture(payload)),
         )
         .route(
-            "/firmware/flowmeter/:board/:ssid/:password/:key",
-            get(
-                move |Path((board, ssid, password, key)): Path<(
-                    String,
-                    String,
-                    String,
-                    String,
-                )>| { firmware::flowmeter(board, ssid, password, key) },
-            ),
+            "/firmware/flowmeter",
+            post(|Json(payload): Json<FirmwareRequest>| firmware::flowmeter(payload)),
         )
 }

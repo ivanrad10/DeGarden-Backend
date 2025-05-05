@@ -1,7 +1,6 @@
 use axum::Json;
 use chrono::{TimeZone, Utc};
 use serde::Deserialize;
-
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;

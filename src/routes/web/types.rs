@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize)]
 pub struct MoisturePoint {
@@ -28,4 +28,12 @@ pub struct IrrigationPoint {
 #[derive(Serialize)]
 pub struct FlowmeterData {
     pub values: Vec<IrrigationPoint>,
+}
+
+#[derive(Deserialize)]
+pub struct FirmwareRequest {
+    pub board: String,
+    pub ssid: String,
+    pub password: String,
+    pub key: String,
 }
