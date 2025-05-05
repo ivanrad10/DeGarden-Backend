@@ -1,6 +1,6 @@
-use serde::Deserialize;
-use chrono::{TimeZone, Utc};
 use axum::Json;
+use chrono::{TimeZone, Utc};
+use serde::Deserialize;
 
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -11,6 +11,7 @@ pub struct FlowmeterReading {
     pub start: i64,
     pub stop: i64,
     pub value: f64,
+    pub key: String,
 }
 
 const TIMEOUT: i64 = 5000;
@@ -29,19 +30,25 @@ pub async fn send(payload: Json<FlowmeterReading>, db_client: Arc<Mutex<Client>>
 
     // Prepare the SQL query to insert flowmeter data
     let query = "
-        INSERT INTO flowmeter (start, stop, value, lat, lng)
-        VALUES ($1, $2, $3, $4, $5);
+        INSERT INTO flowmeter (start, stop, key, value, lat, lng)
+        VALUES ($1, $2, $3, $4, $5, $6);
     ";
 
     // Try to execute the query
-    let result = db_client.lock().await
-        .execute(query, &[
-            &(start),
-            &(stop),
-            &(payload.value),
-            &(lat),
-            &(lng),
-        ])
+    let result = db_client
+        .lock()
+        .await
+        .execute(
+            query,
+            &[
+                &(start),
+                &(stop),
+                &(payload.key),
+                &(payload.value),
+                &(lat),
+                &(lng),
+            ],
+        )
         .await;
 
     println!("Flowmeter");
