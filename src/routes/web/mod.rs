@@ -4,37 +4,33 @@ use axum::{extract::Path, routing::get, Router};
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
-pub mod host;
+pub mod calculate;
+pub mod direct;
+pub mod types;
+pub mod utils;
 
 pub fn routes(db_client: Arc<Mutex<Client>>) -> Router {
-    let host_moisture_client = db_client.clone();
-    let host_flowmeter_client = db_client;
-    let client_moisture_client = db_client.clone();
-    let client_flowmeter_client = db_client;
+    let direct_moisture_client = db_client.clone();
+    let direct_flowmeter_client = db_client.clone();
+    let calculate_moisture_client = db_client.clone();
 
     Router::new()
         .route(
-            "/host/moisture/:device_id",
+            "/direct/moisture/:device_id",
             get(move |Path(device_id): Path<String>| {
-                host::moisture(device_id, host_moisture_client.clone())
+                direct::moisture(device_id, direct_moisture_client.clone())
             }),
         )
         .route(
-            "/host/flowmeter/:device_id",
+            "/direct/flowmeter/:device_id",
             get(move |Path(device_id): Path<String>| {
-                host::flowmeter(device_id, host_flowmeter_client.clone())
+                direct::flowmeter(device_id, direct_flowmeter_client.clone())
             }),
         )
         .route(
-            "/client/moisture/:device_id",
-            get(move |Path(device_id): Path<String>| {
-                host::moisture(device_id, client_moisture_client.clone())
-            }),
-        )
-        .route(
-            "/client/flowmeter/:device_id",
-            get(move |Path(device_id): Path<String>| {
-                host::flowmeter(device_id, client_flowmeter_client.clone())
+            "/calculate/moisture/:lat/:lng",
+            get(move |Path((lat, lng)): Path<(f64, f64)>| {
+                calculate::moisture(lat, lng, calculate_moisture_client.clone())
             }),
         )
 }
