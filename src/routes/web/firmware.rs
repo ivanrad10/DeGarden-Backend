@@ -1,10 +1,11 @@
-use std::{path::PathBuf, process::Command};
+use std::{env, path::PathBuf, process::Command};
 
 use axum::{
     body::StreamBody,
     http::{header, HeaderValue, StatusCode},
     response::IntoResponse,
 };
+use dotenv::dotenv;
 use tokio::fs::File;
 use tokio_util::io::ReaderStream;
 
@@ -14,8 +15,10 @@ pub async fn moisture(
     password: String,
     key: String,
 ) -> impl IntoResponse {
-    let project_dir = "/home/alex/Documents/work/DeGarden-Firmware-Moisture/";
-    build_and_stream_firmware(project_dir, &board, &ssid, &password, &key).await
+    dotenv().ok();
+    let base_dir = env::var("BASE_DIR_MOISTURE").expect("BASE_DIR_MOISTURE not set in .env file");
+
+    build_and_stream_firmware(&base_dir, &board, &ssid, &password, &key).await
 }
 
 pub async fn flowmeter(
@@ -24,17 +27,37 @@ pub async fn flowmeter(
     password: String,
     key: String,
 ) -> impl IntoResponse {
-    let project_dir = "/home/alex/Documents/work/DeGarden-Firmware-Flowmeter/";
-    build_and_stream_firmware(project_dir, &board, &ssid, &password, &key).await
+    dotenv().ok();
+    let base_dir = env::var("BASE_DIR_FLOWMETER").expect("BASE_DIR_FLOWMETER not set in .env file");
+
+    build_and_stream_firmware(&base_dir, &board, &ssid, &password, &key).await
 }
 
 async fn build_and_stream_firmware(
-    project_dir: &str,
+    base_dir: &str,
     board: &str,
     ssid: &str,
     password: &str,
     key: &str,
 ) -> impl IntoResponse {
+    let supported_boards = env::var("SUPPORTED_BOARDS_MOISTURE")
+        .expect("SUPPORTED_BOARDS_MOISTURE not set in .env file");
+
+    let supported: Vec<&str> = supported_boards.split(',').map(str::trim).collect();
+
+    match supported.iter().any(|&b| b == board) {
+        true => {}
+        false => {
+            return (
+                StatusCode::BAD_REQUEST,
+                format!("Unsupported board: {}", board),
+            )
+                .into_response()
+        }
+    };
+
+    let project_dir = format!("{}/{}", base_dir, board);
+
     let mut command = Command::new("cargo");
     command
         .arg("build")
@@ -42,7 +65,7 @@ async fn build_and_stream_firmware(
         .env("DEVICE_ID", key)
         .env("WIFI_SSID", ssid)
         .env("WIFI_PASSWORD", password)
-        .current_dir(project_dir);
+        .current_dir(&project_dir);
 
     let output = command.output();
 
@@ -66,11 +89,20 @@ async fn build_and_stream_firmware(
         }
     }
 
-    let firmware_path: PathBuf = format!(
-        "{}/target/riscv32imc-unknown-none-elf/release/firmware",
-        project_dir
-    )
-    .into();
+    let firmware_path: PathBuf = match board {
+        "esp32c6" => format!(
+            "{}/target/riscv32imc-unknown-none-elf/release/firmware",
+            &project_dir
+        )
+        .into(),
+        _ => {
+            return (
+                StatusCode::BAD_REQUEST,
+                format!("Unsupported board: {}", board),
+            )
+                .into_response();
+        }
+    };
 
     match File::open(&firmware_path).await {
         Ok(file) => {
