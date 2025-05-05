@@ -7,10 +7,20 @@ use tokio_postgres::Client;
 pub mod host;
 
 pub fn routes(db_client: Arc<Mutex<Client>>) -> Router {
-    let moisture_client = db_client;
+    let host_moisture_client = db_client.clone();
+    let host_flowmeter_client = db_client;
 
-    Router::new().route(
-        "/host/:device_id",
-        get(move |Path(device_id): Path<String>| host::host(device_id, moisture_client.clone())),
-    )
+    Router::new()
+        .route(
+            "/host/moisture/:device_id",
+            get(move |Path(device_id): Path<String>| {
+                host::moisture(device_id, host_moisture_client.clone())
+            }),
+        )
+        .route(
+            "/host/flowmeter/:device_id",
+            get(move |Path(device_id): Path<String>| {
+                host::flowmeter(device_id, host_flowmeter_client.clone())
+            }),
+        )
 }
