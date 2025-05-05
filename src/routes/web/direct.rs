@@ -5,11 +5,11 @@ use tokio_postgres::Client;
 
 use super::{types::*, utils};
 
-pub async fn moisture(device_id: String, db_client: Arc<Mutex<Client>>) -> impl IntoResponse {
+pub async fn moisture(key: String, db_client: Arc<Mutex<Client>>) -> impl IntoResponse {
     let client = db_client.lock().await;
 
     let query = "SELECT time, value FROM moisture WHERE key = $1 ORDER BY time DESC LIMIT 100";
-    let rows = client.query(query, &[&device_id]).await;
+    let rows = client.query(query, &[&key]).await;
 
     match rows {
         Ok(rows) if !rows.is_empty() => {
@@ -33,11 +33,11 @@ pub async fn moisture(device_id: String, db_client: Arc<Mutex<Client>>) -> impl 
     }
 }
 
-pub async fn flowmeter(device_id: String, db_client: Arc<Mutex<Client>>) -> impl IntoResponse {
+pub async fn flowmeter(key: String, db_client: Arc<Mutex<Client>>) -> impl IntoResponse {
     let client = db_client.lock().await;
     let query =
         "SELECT start, stop, value FROM flowmeter WHERE key = $1 ORDER BY stop DESC LIMIT 100";
-    let rows = client.query(query, &[&device_id]).await;
+    let rows = client.query(query, &[&key]).await;
 
     match rows {
         Ok(rows) if !rows.is_empty() => {
