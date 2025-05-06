@@ -3,13 +3,18 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
-use super::{types::*, utils};
+use super::{types::*, utils, program_utils::*};
 
 pub async fn moisture(key: String, db_client: Arc<Mutex<Client>>) -> impl IntoResponse {
     let client = db_client.lock().await;
 
     let query = "SELECT time, value FROM moisture WHERE key = $1 ORDER BY time DESC LIMIT 100";
     let rows = client.query(query, &[&key]).await;
+
+    // match fetch_sensors(SensorType::Moisture).await {
+    //     Ok(_) => (),                              
+    //     Err(e) => eprintln!("fetch_accounts failed: {}", e),
+    // }
 
     match rows {
         Ok(rows) if !rows.is_empty() => {

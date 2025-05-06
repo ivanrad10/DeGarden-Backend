@@ -14,6 +14,7 @@ pub mod direct;
 pub mod firmware;
 pub mod types;
 pub mod utils;
+pub mod program_utils;
 
 pub fn routes(db_client: Arc<Mutex<Client>>) -> Router {
     let direct_moisture_client = db_client.clone();
