@@ -52,12 +52,12 @@ pub async fn moisture(lat: f64, lng: f64, db_client: Arc<Mutex<Client>>) -> impl
                 })
                 .collect();
 
-            let host_data = MoistureData { values: results };
+            let host_data = MoistureReadings { readings: results };
 
             Json(host_data)
         }
         _ => {
-            let host_data = MoistureData { values: vec![] };
+            let host_data = MoistureReadings { readings: vec![] };
 
             Json(host_data)
         }

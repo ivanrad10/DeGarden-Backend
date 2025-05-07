@@ -1,4 +1,4 @@
-use axum::{response::IntoResponse, Json};
+use axum::{http::StatusCode, response::IntoResponse, Json};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
@@ -6,13 +6,16 @@ use tokio_postgres::Client;
 use super::{blockchain, types::*, utils};
 
 pub async fn moisture(key: String, db_client: Arc<Mutex<Client>>) -> impl IntoResponse {
-    let sensors_metadata = blockchain::get_sensors(SensorType::Moisture)
-        .await
-        .unwrap_or_else(|e| {
-            eprintln!("Failed getting moisture sensors metadata: {}", e);
-            Vec::new()
-        });
-    println!("{:?}", sensors_metadata);
+    let sensor_metadata = match blockchain::get_sensor(key.clone()).await {
+        Ok(data) => data,
+        Err(_) => {
+            return (
+                StatusCode::NOT_FOUND,
+                format!("Sensor with id '{}' not found on blockchain", key),
+            )
+                .into_response();
+        }
+    };
 
     let client = db_client.lock().await;
 
@@ -29,26 +32,32 @@ pub async fn moisture(key: String, db_client: Arc<Mutex<Client>>) -> impl IntoRe
                 })
                 .collect();
 
-            let host_data = MoistureData { values: results };
-
-            Json(host_data)
+            let host_data = MoistureData {
+                readings: results,
+                metadata: sensor_metadata,
+            };
+            Json(host_data).into_response()
         }
-        _ => {
-            let host_data = MoistureData { values: vec![] };
-
-            Json(host_data)
-        }
+        _ => (
+            StatusCode::NOT_FOUND,
+            format!("Sensor with id '{}' has no readings", key),
+        )
+            .into_response(),
     }
 }
 
 pub async fn flowmeter(key: String, db_client: Arc<Mutex<Client>>) -> impl IntoResponse {
-    let sensors_metadata = blockchain::get_sensors(SensorType::Flowmeter)
-        .await
-        .unwrap_or_else(|e| {
-            eprintln!("Failed getting flowmeter sensors metadata: {}", e);
-            Vec::new()
-        });
-    println!("{:?}", sensors_metadata);
+    let sensor_metadata = match blockchain::get_sensor(key.clone()).await {
+        Ok(data) => data,
+        Err(e) => {
+            eprintln!("Failed getting flowmeter sensor metadata: {}", e);
+            return (
+                StatusCode::NOT_FOUND,
+                format!("Sensor with id '{}' not found on blockchain", key),
+            )
+                .into_response();
+        }
+    };
 
     let client = db_client.lock().await;
     let query =
@@ -66,16 +75,18 @@ pub async fn flowmeter(key: String, db_client: Arc<Mutex<Client>>) -> impl IntoR
                 })
                 .collect();
 
-            let values = utils::aggregate_flowmeter(results);
+            let readings = utils::aggregate_flowmeter(results);
 
-            let host_data = FlowmeterData { values };
-
-            Json(host_data)
+            let host_data = FlowmeterData {
+                readings,
+                metadata: sensor_metadata,
+            };
+            Json(host_data).into_response()
         }
-        _ => {
-            let host_data = FlowmeterData { values: vec![] };
-
-            Json(host_data)
-        }
+        _ => (
+            StatusCode::NOT_FOUND,
+            format!("Sensor with id '{}' has no readings", key),
+        )
+            .into_response(),
     }
 }
