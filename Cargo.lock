@@ -423,9 +423,8 @@ dependencies = [
 
 [[package]]
 name = "backend"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
- "anyhow",
  "axum",
  "borsh 0.10.4",
  "borsh-derive 0.10.4",

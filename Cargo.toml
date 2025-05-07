@@ -1,19 +1,13 @@
 [package]
 name = "backend"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 
 [dependencies]
 # Server
 axum = "0.6"
-tower-http = { version = "0.3", features = ["cors"] }
 tokio = { version = "1.36", features = ["full"] }
-borsh = "0.10"
-borsh-derive = "0.10"
-anyhow = "1.0"
-
-solana-client = "2.0"     
-solana-sdk = "2.0"
+tower-http = { version = "0.3", features = ["cors"] }
 
 # Utils
 dotenv = "0.15"
@@ -27,3 +21,9 @@ chrono = { version = "0.4", features = ["serde", "clock"] }
 
 # Files
 tokio-util = { version = "0.7", features = ["io"] }
+
+# Blockchain
+borsh = "0.10"
+borsh-derive = "0.10"
+solana-client = "2.0"
+solana-sdk = "2.0"

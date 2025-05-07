@@ -1,13 +1,15 @@
 use axum::{Router, Server};
+use dotenv::dotenv;
 use std::net::SocketAddr;
-use tower_http::cors::{CorsLayer, Any};
+use tower_http::cors::{Any, CorsLayer};
 
 mod database;
 mod routes;
 
 #[tokio::main]
 async fn main() {
-    // Create the router
+    dotenv().ok();
+
     let router = routes::create().await;
 
     let cors = CorsLayer::new()
@@ -15,9 +17,7 @@ async fn main() {
         .allow_methods(Any)
         .allow_headers(Any);
 
-    let app = Router::new()
-        .nest("/", router)   
-        .layer(cors); 
+    let app = Router::new().nest("/", router).layer(cors);
 
     // Define the socket address
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));

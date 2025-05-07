@@ -3,7 +3,6 @@ use axum::{
     http::{header, HeaderValue, StatusCode},
     response::IntoResponse,
 };
-use dotenv::dotenv;
 use std::{env, path::PathBuf, process::Command};
 use tokio::fs::File;
 use tokio_util::io::ReaderStream;
@@ -11,14 +10,12 @@ use tokio_util::io::ReaderStream;
 use super::types::FirmwareRequest;
 
 pub async fn moisture(payload: FirmwareRequest) -> impl IntoResponse {
-    dotenv().ok();
     let base_dir = env::var("BASE_DIR_MOISTURE").expect("BASE_DIR_MOISTURE not set in .env file");
 
     build_and_stream_firmware(&base_dir, &payload).await
 }
 
 pub async fn flowmeter(payload: FirmwareRequest) -> impl IntoResponse {
-    dotenv().ok();
     let base_dir = env::var("BASE_DIR_FLOWMETER").expect("BASE_DIR_FLOWMETER not set in .env file");
 
     build_and_stream_firmware(&base_dir, &payload).await

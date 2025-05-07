@@ -1,4 +1,3 @@
-use dotenv::dotenv;
 use std::env;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -6,7 +5,6 @@ use tokio_postgres::{Client, NoTls};
 
 pub async fn connect() -> Arc<Mutex<Client>> {
     // Extract credentials
-    dotenv().ok();
     let db_host = env::var("DB_HOST").expect("DB_HOST not set in .env");
     let db_port = env::var("DB_PORT").expect("DB_PORT not set in .env");
     let db_user = env::var("DB_USER").expect("DB_USER not set in .env");

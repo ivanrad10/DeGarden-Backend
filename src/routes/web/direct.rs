@@ -3,18 +3,21 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio_postgres::Client;
 
-use super::{types::*, utils, program_utils::*};
+use super::{blockchain, types::*, utils};
 
 pub async fn moisture(key: String, db_client: Arc<Mutex<Client>>) -> impl IntoResponse {
+    let sensors_metadata = blockchain::get_sensors(SensorType::Moisture)
+        .await
+        .unwrap_or_else(|e| {
+            eprintln!("Failed getting moisture sensors metadata: {}", e);
+            Vec::new()
+        });
+    println!("{:?}", sensors_metadata);
+
     let client = db_client.lock().await;
 
     let query = "SELECT time, value FROM moisture WHERE key = $1 ORDER BY time DESC LIMIT 100";
     let rows = client.query(query, &[&key]).await;
-
-    // match fetch_sensors(SensorType::Moisture).await {
-    //     Ok(_) => (),                              
-    //     Err(e) => eprintln!("fetch_accounts failed: {}", e),
-    // }
 
     match rows {
         Ok(rows) if !rows.is_empty() => {
@@ -39,6 +42,14 @@ pub async fn moisture(key: String, db_client: Arc<Mutex<Client>>) -> impl IntoRe
 }
 
 pub async fn flowmeter(key: String, db_client: Arc<Mutex<Client>>) -> impl IntoResponse {
+    let sensors_metadata = blockchain::get_sensors(SensorType::Flowmeter)
+        .await
+        .unwrap_or_else(|e| {
+            eprintln!("Failed getting flowmeter sensors metadata: {}", e);
+            Vec::new()
+        });
+    println!("{:?}", sensors_metadata);
+
     let client = db_client.lock().await;
     let query =
         "SELECT start, stop, value FROM flowmeter WHERE key = $1 ORDER BY stop DESC LIMIT 100";
